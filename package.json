@@ -1,0 +1,23 @@
+{
+  "name": "ampdcode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "rm -rf ./data/database.sqlite && sqlite3 ./data/database.sqlite -cmd \".mode csv\" \".import ./data/device-saving.csv device_saving\" \".import ./data/devices.csv devices\"",
+    "start": "node app.js"
+  },
+  "type": "module",
+  "author": "gowthaman basuvaraj",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "pino": "^10.1.0",
+    "pug": "^3.0.3",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}

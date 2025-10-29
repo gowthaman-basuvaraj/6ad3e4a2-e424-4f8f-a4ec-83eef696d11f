@@ -1,0 +1,12 @@
+### get monthwie grouping
+GET http://localhost:3000/api/dashboard
+
+
+### search date-wise
+POST http://localhost:3000/api/search
+Content-Type: application/json
+
+{
+  "from": "2023-01-13 00:00:00",
+  "to": "2024-03-13 23:59:50"
+}
