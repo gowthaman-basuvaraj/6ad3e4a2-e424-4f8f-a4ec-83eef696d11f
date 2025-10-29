@@ -4,7 +4,6 @@ const app = createApp({
     components: {VueDatePicker},
     data() {
         return {
-            data: [],
             search: {
                 from: dayjs("2023-03-13 00:00:00").toDate(),
                 to: dayjs("2024-03-13 23:59:59").toDate(),
@@ -97,16 +96,16 @@ const app = createApp({
         }
     },
     watch: {
-        'search.to': function (newVal, oldVal) {
+        'search.to': async function (newVal, oldVal) {
             console.log('to', newVal, oldVal)
             if (dayjs(newVal).isAfter(dayjs(this.search.from))) {
-                this.search_dates()
+                await this.set_search_dates()
             }
         },
         'search.from': async function (newVal, oldVal) {
             console.log('from', newVal, oldVal)
             if (dayjs(newVal).isBefore(dayjs(this.search.to))) {
-                await this.search_dates()
+                await this.set_search_dates()
             }
         }
     },
@@ -120,6 +119,9 @@ const app = createApp({
                 this.search.to = dayjs().toDate()
             }
         },
+        async set_search_dates() {
+            this.search_result = await this.search_dates()
+        },
         async search_dates() {
             let response = await fetch("/api/search", {
                 method: "POST",
@@ -131,39 +133,43 @@ const app = createApp({
                     to: dayjs(this.search.to).format("YYYY-MM-DD HH:mm:ss"),
                 })
             })
-            if(!response.ok) return
-            let data = await response.json()
-            this.search_result = data
+            if (!response.ok) throw new Error("non 200 response for /api/search")
+            return await response.json()
         },
         async load_dashboard() {
             let response = await fetch('/api/dashboard')
-            if(!response.ok) return
-            let data = await response.json()
-            this.data = data
-            this.total.carbon_saved = data.map(item => item.carbon_saved)
-                .reduce((a, b) => a + b, 0)
-            this.total.fueld_saved = data.map(item => item.fueld_saved)
-                .reduce((a, b) => a + b, 0)
-
-            this.monthly.carbon_saved = this.total.carbon_saved / data.length
-            this.monthly.fueld_saved = this.total.fueld_saved / data.length
-
+            if (!response.ok) throw new Error("non 200 response for /api/dashboard")
+            return await response.json()
         },
         async load_chart() {
             let response = await fetch('/api/chart')
-            if(!response.ok) return
-            let data = await response.json()
-            this.data = data
-            this.option.xAxis[0].data = data.map(item => dayjs(item.day).format("YYYY-MM-DD"))
-            this.option.series[0].data = data.map(item => item.carbon_saved / 1000)
-            this.option.series[1].data = data.map(item => item.fueld_saved / 1000)
-
+            if (!response.ok) throw new Error("non 200 response for /api/chart")
+            return await response.json()
         },
     },
     mounted() {
-        Promise.all([this.search_dates(), this.load_dashboard(), this.load_chart()]).then(() => {
-            console.log('loaded')
-        })
+        Promise.all([
+            this.search_dates(),
+            this.load_dashboard(),
+            this.load_chart()
+        ])
+            .then(([search_result, dashboard_data, chart_data]) => {
+                console.log('loaded')
+                this.search_result = search_result
+
+                this.option.xAxis[0].data = chart_data.map(item => dayjs(item.day).format("YYYY-MM-DD"))
+                this.option.series[0].data = chart_data.map(item => item.carbon_saved / 1000)
+                this.option.series[1].data = chart_data.map(item => item.fueld_saved / 1000)
+
+                this.total.carbon_saved = dashboard_data.map(item => item.carbon_saved)
+                    .reduce((a, b) => a + b, 0)
+                this.total.fueld_saved = dashboard_data.map(item => item.fueld_saved)
+                    .reduce((a, b) => a + b, 0)
+
+                this.monthly.carbon_saved = this.total.carbon_saved / dashboard_data.length
+                this.monthly.fueld_saved = this.total.fueld_saved / dashboard_data.length
+            })
+            .catch(err => console.error(err))
     }
 })
 app.config.globalProperties.$filters = {
