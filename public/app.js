@@ -131,11 +131,13 @@ const app = createApp({
                     to: dayjs(this.search.to).format("YYYY-MM-DD HH:mm:ss"),
                 })
             })
+            if(!response.ok) return
             let data = await response.json()
             this.search_result = data
         },
         async load_dashboard() {
             let response = await fetch('/api/dashboard')
+            if(!response.ok) return
             let data = await response.json()
             this.data = data
             this.total.carbon_saved = data.map(item => item.carbon_saved)
@@ -149,6 +151,7 @@ const app = createApp({
         },
         async load_chart() {
             let response = await fetch('/api/chart')
+            if(!response.ok) return
             let data = await response.json()
             this.data = data
             this.option.xAxis[0].data = data.map(item => dayjs(item.day).format("YYYY-MM-DD"))
