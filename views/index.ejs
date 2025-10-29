@@ -70,27 +70,25 @@
             </div>
         </div>
         <hr>
-        <div class="d-flex flex-column flex-md-row gap-3">
-            <div class="d-flex flex-column mb-2">
-                <label>From</label>
+        <div class="d-flex flex-column flex-md-row gap-3 justify-content-center my-2 align-items-center">
+            <div class="d-flex flex-column">
                 <vue-date-picker
                         :format="format"
                         v-model="search.from" time-picker-inline></vue-date-picker>
             </div>
-
-            <div class="d-flex flex-column mb-2">
-                <label>To</label>
+            <span class="hidden-xs">&mdash;</span>
+            <div class="d-flex flex-column">
                 <vue-date-picker
                         :format="format"
                         v-model="search.to" time-picker-inline></vue-date-picker>
             </div>
         </div>
-        <div class="d-flex gap-2 my-2">
+        <div class="d-flex gap-2 my-2 justify-content-center">
             <button
                     v-for="ps of preset"
                     class="btn btn-outline-dark btn-sm"
-                    @click.prevent="presetDays(ps.value)"
-            >{{ps.text}}
+                    @click.prevent="presetDays(ps.value)">
+                {{ps.text}}
             </button>
         </div>
 
