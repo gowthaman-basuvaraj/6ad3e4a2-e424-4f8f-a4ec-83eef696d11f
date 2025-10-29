@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "rm -rf ./data/database.sqlite && sqlite3 ./data/database.sqlite -cmd \".mode csv\" \".import ./data/device-saving.csv device_saving\" \".import ./data/devices.csv devices\"",
-    "start": "node app.js"
+    "start": "node api.js"
   },
   "type": "module",
   "author": "gowthaman basuvaraj",

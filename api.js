@@ -34,6 +34,7 @@ const dashboard_sql = `select date(timestamp, 'start of month') as month,
                               sum(carbon_saved)                 as carbon_saved,
                               sum(fueld_saved)                  as fueld_saved
                        from device_saving
+                       where month is not null
                        group by month`
 
 const date_range_sql = `select sum(carbon_saved) as carbon_saved,
@@ -53,7 +54,7 @@ get_db().then(db => {
     app.post('/api/search', async (req, res) => {
         const stmt = await db.prepare(date_range_sql)
         await stmt.bind(req.body.from, req.body.to)
-        let result = await stmt.all()
+        let result = await stmt.get()
         logger.debug(`search result from ${req.body.from} to ${req.body.to}:: count ${result.length}`)
         res.json(result)
     })

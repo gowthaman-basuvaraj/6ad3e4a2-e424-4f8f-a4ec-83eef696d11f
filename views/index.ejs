@@ -2,21 +2,120 @@
 <html lang="en">
 <head>
     <title>AMPD Energy:: Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@latest" defer></script>
+    <script src="https://unpkg.com/@vuepic/vue-datepicker@latest" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mathieustan/vue-datepicker@0.2.11/dist/vue-datepicker.umd.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script type="importmap">
-        {
-        "imports": {
-          "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
-        }
-      }
-    </script>
-    <script type="module" src="/public/app.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@vuepic/vue-datepicker@latest/dist/main.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@6.0.0" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-echarts@8.0.0" defer></script>
+    <script src="/public/app.js" defer></script>
 </head>
 <body>
 <div id="app">
+    <div class="container">
+        <div class="fs-4 bg-success-subtle p-2 text-success fw-light">
+            Estimated carbon savings and diesel saving
+        </div>
+        <p class="text-success my-2 fw-light">
+            <small>
+                Download general guidelines on the estimated carbon &
+                diesel savings calculations
+            </small>
+        </p>
+        <hr>
+        <div class="d-flex flex-column gap-2">
+            <span class="fs-5" style="margin-bottom: -12px">Estimated Carbon Savings</span>
+            <small class="fw-light">1 Tonne = 1,000 kg</small>
 
+            <div class="d-flex justify-content-around mt-2">
+                <div class="d-flex flex-column align-items-center">
+                    <span class="fw-lighter">Total</span>
+                    <span class="text-success fs-6">
+                        {{$filters.numbered(total.carbon_saved / 1000) }}
+                    </span>
+                    <span class="text-success fw-light">Tonnes</span>
+                </div>
+                <div class="d-flex flex-column align-items-center">
+                    <span class="fw-lighter">Monthly</span>
+                    <span class="text-success fs-6">
+                        {{$filters.numbered(monthly.carbon_saved / 1000) }}
+                    </span>
+                    <span class="text-success fw-light">Tonnes</span>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="d-flex flex-column gap-2">
+            <span class="fs-5">Estimated Diesel Savings</span>
+
+            <div class="d-flex justify-content-around">
+                <div class="d-flex flex-column align-items-center">
+                    <span class="fw-lighter">Total</span>
+                    <span class="text-primary fs-6">
+                        {{$filters.numbered(total.fueld_saved) }}
+                    </span>
+                    <span class="text-primary fw-light">Liters</span>
+                </div>
+                <div class="d-flex flex-column align-items-center">
+                    <span class="fw-lighter">Monthly</span>
+                    <span class="text-primary fs-6">
+                        {{$filters.numbered(monthly.fueld_saved) }}
+                    </span>
+                    <span class="text-primary fw-light">Liters</span>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="d-flex flex-column flex-md-row gap-3">
+            <div class="d-flex flex-column mb-2">
+                <label>From</label>
+                <vue-date-picker
+                        :format="format"
+                        v-model="search.from" time-picker-inline></vue-date-picker>
+            </div>
+
+            <div class="d-flex flex-column mb-2">
+                <label>To</label>
+                <vue-date-picker
+                        :format="format"
+                        v-model="search.to" time-picker-inline></vue-date-picker>
+            </div>
+        </div>
+        <div class="d-flex gap-2 my-2">
+            <button
+                    v-for="ps of preset"
+                    class="btn btn-outline-dark btn-sm"
+                    @click.prevent="presetDays(ps.value)"
+            >{{ps.text}}
+            </button>
+        </div>
+
+        <div class="d-flex justify-content-around my-4">
+            <div class="d-flex flex-column align-items-center">
+                <span class="fw-bold">Estimated carbon savings</span>
+                <small class="fw-light">Sum of selected date range</small>
+                <span class="text-success fs-5">{{$filters.numbered(search_result.carbon_saved / 1000) }}</span>
+                <span class="text-success fw-light">Tonnes</span>
+            </div>
+            <div class="d-flex flex-column align-items-center">
+                <span class="fw-bold">Estimated diesel savings</span>
+                <small class="fw-light">Sum of selected date range</small>
+                <span class="text-primary fs-5">{{$filters.numbered(search_result.fueld_saved) }}</span>
+                <span class="text-primary fw-light">Liters</span>
+            </div>
+        </div>
+
+        <div class="d-flex" style="height: 300px">
+            <!-- charts -->
+            <v-chart :option="option" autoresize></v-chart>
+        </div>
+
+
+    </div>
 </div>
 </body>
 </html>
