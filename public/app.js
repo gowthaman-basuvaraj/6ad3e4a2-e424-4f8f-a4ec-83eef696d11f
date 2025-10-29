@@ -28,6 +28,12 @@ const app = createApp({
                 {text: 'Last Year', value: 'PREV_YEAR'},
             ],
             option: {
+                dataZoom: [
+                    {
+                        type: 'inside', // 'inside' means the zoom happens within the chart area
+                        zoomOnMouseWheel: true
+                    }
+                ],
                 yAxis: [
                     {
                         type: 'value',
@@ -66,6 +72,7 @@ const app = createApp({
                 },
                 xAxis: [
                     {
+                        type: 'category',
                         axisTick: {
                             alignWithLabel: true
                         },
@@ -92,14 +99,14 @@ const app = createApp({
     watch: {
         'search.to': function (newVal, oldVal) {
             console.log('to', newVal, oldVal)
-            if(dayjs(newVal).isAfter(dayjs(this.search.from))){
+            if (dayjs(newVal).isAfter(dayjs(this.search.from))) {
                 this.search_dates()
             }
         },
-        'search.from': function (newVal, oldVal) {
+        'search.from': async function (newVal, oldVal) {
             console.log('from', newVal, oldVal)
-            if(dayjs(newVal).isBefore(dayjs(this.search.to))){
-                this.search_dates()
+            if (dayjs(newVal).isBefore(dayjs(this.search.to))) {
+                await this.search_dates()
             }
         }
     },
@@ -113,8 +120,8 @@ const app = createApp({
                 this.search.to = dayjs().toDate()
             }
         },
-        search_dates() {
-            fetch("/api/search", {
+        async search_dates() {
+            let response = await fetch("/api/search", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -123,36 +130,37 @@ const app = createApp({
                     from: dayjs(this.search.from).format("YYYY-MM-DD HH:mm:ss"),
                     to: dayjs(this.search.to).format("YYYY-MM-DD HH:mm:ss"),
                 })
-            }).then(response => {
-                response.json().then(data => {
-                    this.search_result = data
-                })
             })
+            let data = await response.json()
+            this.search_result = data
         },
-        load_dashboard() {
-            fetch('/api/dashboard')
-                .then(response => response.json())
-                .then(data => {
-                    this.data = data
-                    console.log(data)
-                    this.total.carbon_saved = data.map(item => item.carbon_saved)
-                        .reduce((a, b) => a + b, 0)
-                    this.total.fueld_saved = data.map(item => item.fueld_saved)
-                        .reduce((a, b) => a + b, 0)
+        async load_dashboard() {
+            let response = await fetch('/api/dashboard')
+            let data = await response.json()
+            this.data = data
+            this.total.carbon_saved = data.map(item => item.carbon_saved)
+                .reduce((a, b) => a + b, 0)
+            this.total.fueld_saved = data.map(item => item.fueld_saved)
+                .reduce((a, b) => a + b, 0)
 
-                    this.monthly.carbon_saved = this.total.carbon_saved / data.length
-                    this.monthly.fueld_saved = this.total.fueld_saved / data.length
+            this.monthly.carbon_saved = this.total.carbon_saved / data.length
+            this.monthly.fueld_saved = this.total.fueld_saved / data.length
 
-                    this.option.xAxis[0].data = data.map(item => dayjs(item.month).format("MMM YYYY"))
-                    this.option.series[0].data = data.map(item => item.carbon_saved / 1000)
-                    this.option.series[1].data = data.map(item => item.fueld_saved / 1000)
+        },
+        async load_chart() {
+            let response = await fetch('/api/chart')
+            let data = await response.json()
+            this.data = data
+            this.option.xAxis[0].data = data.map(item => dayjs(item.day).format("YYYY-MM-DD"))
+            this.option.series[0].data = data.map(item => item.carbon_saved / 1000)
+            this.option.series[1].data = data.map(item => item.fueld_saved / 1000)
 
-                })
-        }
+        },
     },
     mounted() {
-        this.load_dashboard()
-        this.search_dates()
+        Promise.all([this.search_dates(), this.load_dashboard(), this.load_chart()]).then(() => {
+            console.log('loaded')
+        })
     }
 })
 app.config.globalProperties.$filters = {

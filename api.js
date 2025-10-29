@@ -37,6 +37,13 @@ const dashboard_sql = `select date(timestamp, 'start of month') as month,
                        where month is not null
                        group by month`
 
+const dashboard_chart_sql = `select date(timestamp, 'start of day') as day,
+                              sum(carbon_saved)                 as carbon_saved,
+                              sum(fueld_saved)                  as fueld_saved
+                       from device_saving
+                       where day is not null
+                       group by day`
+
 const date_range_sql = `select sum(carbon_saved) as carbon_saved,
                                sum(fueld_saved)  as fueld_saved
                         from device_saving
@@ -49,6 +56,12 @@ get_db().then(db => {
         const stmt = await db.prepare(dashboard_sql)
         let result = await stmt.all()
         logger.debug(`dashboard result count ${result.length}`)
+        res.json(result)
+    })
+    app.get('/api/chart', async (req, res) => {
+        const stmt = await db.prepare(dashboard_chart_sql)
+        let result = await stmt.all()
+        logger.debug(`chart result count ${result.length}`)
         res.json(result)
     })
     app.post('/api/search', async (req, res) => {
