@@ -12,10 +12,12 @@
   "author": "gowthaman basuvaraj",
   "license": "ISC",
   "dependencies": {
+    "bentocache": "^1.5.0",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2",
     "pug": "^3.0.3",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"

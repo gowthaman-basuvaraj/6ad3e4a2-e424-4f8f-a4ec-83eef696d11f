@@ -1,6 +1,8 @@
-### get monthwie grouping
+### get monthwise grouping
 GET http://localhost:3000/api/dashboard
 
+### get chart data (grouped by day)
+GET http://localhost:3000/api/chart
 
 ### search date-wise
 POST http://localhost:3000/api/search

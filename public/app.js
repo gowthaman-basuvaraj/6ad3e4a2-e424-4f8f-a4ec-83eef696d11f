@@ -115,7 +115,7 @@ const app = createApp({
                 this.search.from = dayjs().startOf('year').subtract(1, 'year').toDate()
                 this.search.to = dayjs().startOf('year').toDate()
             } else {
-                this.search.from = dayjs().subtract(what, 'days').toDate()
+                this.search.from = dayjs().subtract(-1*what, 'days').toDate()
                 this.search.to = dayjs().toDate()
             }
         },

@@ -1,7 +1,7 @@
 Prerequisites
 ===
 
-* node v18.19.0
+* node 20+
 * sqlite3 installed
 
 PREPARE

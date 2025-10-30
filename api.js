@@ -3,13 +3,17 @@ import express from 'express'
 import sqlite3 from 'sqlite3'
 import {open} from 'sqlite'
 import pino from 'pino'
+import bento from "./utils/cache.js";
 
 
 dotenv.config()
 
 const app = express()
 const port = process.env.PORT || 3000
-const logger = pino()
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    transport: {target: 'pino-pretty'}
+})
 
 app.set('view engine', 'ejs')
 app.set('views', './views')
@@ -38,11 +42,11 @@ const dashboard_sql = `select date(timestamp, 'start of month') as month,
                        group by month`
 
 const dashboard_chart_sql = `select date(timestamp, 'start of day') as day,
-                              sum(carbon_saved)                 as carbon_saved,
-                              sum(fueld_saved)                  as fueld_saved
-                       from device_saving
-                       where day is not null
-                       group by day`
+                                    sum(carbon_saved)               as carbon_saved,
+                                    sum(fueld_saved)                as fueld_saved
+                             from device_saving
+                             where day is not null
+                             group by day`
 
 const date_range_sql = `select sum(carbon_saved) as carbon_saved,
                                sum(fueld_saved)  as fueld_saved
@@ -53,26 +57,45 @@ const date_range_sql = `select sum(carbon_saved) as carbon_saved,
 get_db().then(db => {
 
     app.get('/api/dashboard', async (req, res) => {
-        const stmt = await db.prepare(dashboard_sql)
-        let result = await stmt.all()
+        const result = await bento.namespace("api").getOrSet({
+            key: "dashboard",
+            ttl: 60 * 60 * 24,
+            factory: async () => {
+                const stmt = await db.prepare(dashboard_sql)
+                return await stmt.all()
+            }
+        })
+
         logger.debug(`dashboard result count ${result.length}`)
         res.json(result)
     })
     app.get('/api/chart', async (req, res) => {
-        const stmt = await db.prepare(dashboard_chart_sql)
-        let result = await stmt.all()
+        const result = await bento.namespace("api").getOrSet({
+            key: "chart",
+            ttl: 60 * 60 * 24,
+            factory: async () => {
+                const stmt = await db.prepare(dashboard_chart_sql)
+                return await stmt.all()
+            }
+        })
         logger.debug(`chart result count ${result.length}`)
         res.json(result)
     })
     app.post('/api/search', async (req, res) => {
-        const stmt = await db.prepare(date_range_sql)
-        await stmt.bind(req.body.from, req.body.to)
-        let result = await stmt.get()
+        const result = await bento.namespace("api").getOrSet({
+            key: `chart-${req.body.from}-${req.body.to}`,
+            ttl: 60 * 60 * 24,
+            factory: async () => {
+                const stmt = await db.prepare(date_range_sql)
+                await stmt.bind(req.body.from, req.body.to)
+                return await stmt.get()
+            }
+        });
         logger.debug(`search result from ${req.body.from} to ${req.body.to}:: count ${result.length}`)
         res.json(result)
     })
     app.get('/', async (req, res) => {
-        res.render('index', {title: 'Hey', message: 'Hello there!'})
+        res.render('index', {})
     })
 
     app.listen(port, () => {
