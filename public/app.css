@@ -1,3 +1,6 @@
 canvas {
     cursor: zoom-in;
 }
+[v-cloak] {
+    display: none;
+}
